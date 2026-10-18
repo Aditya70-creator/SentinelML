@@ -1,0 +1,68 @@
+{
+  "winning_model": "RandomForest",
+  "optimal_threshold": 0.5533,
+  "features": [
+    "flow_duration_ms",
+    "total_fwd_packets",
+    "total_bwd_packets",
+    "packet_length_mean",
+    "syn_flag_count",
+    "rst_flag_count",
+    "flow_bytes_per_sec",
+    "failed_login_attempts",
+    "dst_port_entropy"
+  ],
+  "leaderboard": {
+    "LogisticRegression_Baseline": {
+      "pr_auc": 0.8808,
+      "f1_score": 0.9128,
+      "precision": 0.9855,
+      "recall": 0.85,
+      "optimal_threshold": 0.7607,
+      "confusion_matrix": [
+        [
+          1038,
+          2
+        ],
+        [
+          24,
+          136
+        ]
+      ]
+    },
+    "RandomForest": {
+      "pr_auc": 0.8891,
+      "f1_score": 0.92,
+      "precision": 0.9857,
+      "recall": 0.8625,
+      "optimal_threshold": 0.5533,
+      "confusion_matrix": [
+        [
+          1038,
+          2
+        ],
+        [
+          22,
+          138
+        ]
+      ]
+    },
+    "XGBoost": {
+      "pr_auc": 0.8852,
+      "f1_score": 0.92,
+      "precision": 0.9857,
+      "recall": 0.8625,
+      "optimal_threshold": 0.9131,
+      "confusion_matrix": [
+        [
+          1038,
+          2
+        ],
+        [
+          22,
+          138
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# Python & Virtual Environments
+.venv/
+env/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.DS_Store
+
+# ML Artifacts & Tracking Databases
+mlruns/
+mlflow.db
+*.db
+*.sqlite
+
+# OS / IDE specific
+.vscode/
+.idea/
+.env
