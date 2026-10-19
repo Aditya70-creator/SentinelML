@@ -1,262 +1,345 @@
-# 🛡️ SentinelML — Intrusion Detection & Explainable MLOps Pipeline
+# 🛡️ SentinelML — Explainable Network Intrusion Detection & MLOps Pipeline
 
-![Status](https://img.shields.io/badge/Status-Active_Development-10B981?style=for-the-badge)
-![Domain](https://img.shields.io/badge/Domain-Cybersecurity_%26_MLOps-00E7FF?style=for-the-badge)
-![Stack](https://img.shields.io/badge/Stack-RandomForest_%7C_SHAP_%7C_FastAPI_%7C_MLflow-8B5CF6?style=for-the-badge)
-![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+<p align="center">
+  <img src="https://img.shields.io/badge/Domain-Cybersecurity-00E7FF?style=for-the-badge" alt="Domain: Cybersecurity">
+  <img src="https://img.shields.io/badge/Focus-MLOps-10B981?style=for-the-badge" alt="Focus: MLOps">
+  <img src="https://img.shields.io/badge/Language-Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License">
+</p>
 
-**SentinelML** is an end-to-end machine learning and MLOps project designed to detect potentially malicious network traffic and explain model predictions. It combines imbalanced classification, threshold optimization, SHAP-based explainability, validated REST inference, experiment tracking, and automated data-drift monitoring in a modular pipeline.
+<p align="center">
+  <b>An end-to-end machine learning pipeline for network intrusion detection, explainable predictions, experiment tracking, and data drift monitoring.</b>
+</p>
 
-> **Project goal:** Build a reproducible, explainable, and deployment-ready intrusion detection pipeline with a strong focus on model quality, observability, and reliable inference.
+<p align="center">
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/XGBoost-EC6B23?style=flat-square" alt="XGBoost">
+  <img src="https://img.shields.io/badge/SHAP-6554C0?style=flat-square" alt="SHAP">
+  <img src="https://img.shields.io/badge/MLflow-0194E2?style=flat-square&logo=mlflow&logoColor=white" alt="MLflow">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white" alt="Pytest">
+</p>
 
 ---
+
+## 📌 Overview
+
+**SentinelML** is a cybersecurity-focused machine learning and MLOps project designed to classify network traffic, explain model predictions, and monitor potential changes in incoming data.
+
+The project combines an ML training pipeline with a REST API, explainability tools, experiment tracking, automated tests, and an interactive monitoring dashboard.
+
+### 🎯 Project Objectives
+
+- Detect potentially malicious network traffic using machine learning.
+- Evaluate classification performance under class imbalance.
+- Optimize classification thresholds using precision-recall analysis.
+- Explain predictions using SHAP feature attributions.
+- Serve validated inference requests through FastAPI.
+- Monitor feature distribution changes using statistical drift detection.
+- Track experiments and evaluation metrics using MLflow.
+- Validate API behavior with automated tests.
+- Support reproducible execution and containerized deployment.
 
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart LR
-    A["Network Traffic<br/>Flow Records"] --> B["Data Quality Gate<br/>& Feature Engineering"]
-    B --> C["Imbalance Handling<br/>& Model Training"]
-    C --> D["Threshold Optimization<br/>& Model Evaluation"]
-    D --> E["SHAP Explainability<br/>Local & Global"]
-    D --> F["FastAPI Inference<br/>REST Endpoints"]
-    F --> G["Data Drift Monitor<br/>KS-Test & PSI"]
-    G --> H["Monitoring Dashboard<br/>Streamlit"]
-    C --> I["MLflow<br/>Experiment Tracking"]
+flowchart TD
+    A["Network Flow Data"] --> B["Data Quality & Feature Engineering"]
+    B --> C["Preprocessing & Model Training"]
+    C --> D["Model Evaluation & Threshold Tuning"]
+    C --> I["MLflow Experiment Tracking"]
+    D --> E["SHAP Explainability"]
+    D --> F["FastAPI Inference Service"]
+    E --> F
+    F --> G["Incoming Data Monitoring"]
+    G --> H["KS-Test & PSI Drift Analysis"]
+    H --> J["Streamlit Monitoring Dashboard"]
 
-    style A fill:#070b14,stroke:#00E7FF,stroke-width:2px,color:#ffffff
-    style B fill:#0f172a,stroke:#3B82F6,stroke-width:2px,color:#ffffff
-    style C fill:#0f172a,stroke:#00E7FF,stroke-width:2px,color:#ffffff
-    style D fill:#0f172a,stroke:#10B981,stroke-width:2px,color:#ffffff
-    style E fill:#0f172a,stroke:#8B5CF6,stroke-width:2px,color:#ffffff
-    style F fill:#0f172a,stroke:#10B981,stroke-width:2px,color:#ffffff
-    style G fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#ffffff
-    style H fill:#070b14,stroke:#00E7FF,stroke-width:2px,color:#ffffff
-    style I fill:#0f172a,stroke:#8B5CF6,stroke-width:2px,color:#ffffff
+    style A fill:#0f172a,stroke:#38bdf8,color:#ffffff
+    style B fill:#1e1b4b,stroke:#818cf8,color:#ffffff
+    style C fill:#0f172a,stroke:#38bdf8,color:#ffffff
+    style D fill:#064e3b,stroke:#34d399,color:#ffffff
+    style E fill:#1e1b4b,stroke:#a78bfa,color:#ffffff
+    style F fill:#064e3b,stroke:#34d399,color:#ffffff
+    style G fill:#0f172a,stroke:#fbbf24,color:#ffffff
+    style H fill:#1e1b4b,stroke:#fbbf24,color:#ffffff
+    style I fill:#0f172a,stroke:#a78bfa,color:#ffffff
+    style J fill:#0f172a,stroke:#38bdf8,color:#ffffff
 ```
 
-## 🎯 Project Objectives
-
-- Detect malicious network traffic despite severe class imbalance.
-- Compare machine learning models using appropriate classification metrics.
-- Optimize decision thresholds using precision-recall analysis.
-- Explain individual predictions using feature-level SHAP attributions.
-- Expose validated predictions through a FastAPI REST interface.
-- Monitor feature distribution changes and potential data drift.
-- Track experiments and evaluation results with MLflow.
-- Validate API behavior with automated tests and support containerized deployment.
-
-## 🔧 Core ML & MLOps Engineering
+## ⚙️ Core ML & MLOps Engineering
 
 ### 1. Imbalanced Classification & Threshold Optimization
 
-Accuracy alone can be misleading when malicious traffic represents a small fraction of the dataset. SentinelML is designed to evaluate class-weighted models, compare classification approaches, and tune decision thresholds using metrics such as Macro-F1 and PR-AUC.
+Accuracy alone can be misleading when malicious traffic represents a small fraction of the dataset.
+
+SentinelML is designed to compare classification models, evaluate class imbalance handling strategies, and tune decision thresholds using metrics such as Macro-F1 and PR-AUC.
 
 ### 2. Explainable AI for Security Analysis
 
-SHAP-based explanations help identify which input features contributed to a prediction. This can support investigation of suspicious network-flow records and make model behavior easier to inspect.
+SHAP-based explanations help identify the features contributing to individual predictions and provide a way to inspect model behavior.
+
+This supports model transparency and helps developers investigate potentially suspicious predictions.
 
 ### 3. Data Quality & Drift Monitoring
 
-Statistical drift checks compare reference data against incoming observations using methods such as the Kolmogorov-Smirnov test and Population Stability Index (PSI). Monitoring results can help identify distribution changes that warrant investigation or model reevaluation.
+Statistical monitoring compares reference data with incoming observations to identify potential changes in feature distributions.
+
+- **Kolmogorov-Smirnov (KS) test:** Measures differences between numerical feature distributions.
+- **Population Stability Index (PSI):** Provides an additional measure of distribution change when implemented.
+
+Drift alerts indicate that a dataset or model may need further investigation; they do not automatically prove a decline in model accuracy.
 
 ### 4. Backend Inference & API Validation
 
-FastAPI and Pydantic provide a structured REST interface for submitting network-flow features and returning validated predictions. Pytest supports repeatable API and input-validation checks.
+FastAPI and Pydantic provide a structured interface for submitting network-flow features and receiving validated prediction responses.
+
+Pytest is used to test API behavior, input validation, and expected responses.
 
 ### 5. Experiment Tracking & Reproducibility
 
-MLflow can record model parameters, metrics, and experiment runs to make training comparisons easier to reproduce and audit.
+MLflow records experiment parameters, metrics, and model artifacts to support repeatable training runs and comparisons between model versions.
 
 ## 🧰 Technology Stack
 
-| Category | Technologies |
-|---|---|
-| Language | Python 3.12 |
-| Data Processing | NumPy, Pandas |
-| Machine Learning | Scikit-learn, XGBoost |
-| Explainable AI | SHAP |
-| API Serving | FastAPI, Pydantic, Uvicorn |
-| Experiment Tracking | MLflow |
-| Dashboard | Streamlit |
-| Drift Detection | SciPy, Evidently (optional) |
-| Testing | Pytest, HTTPX |
-| Deployment | Docker |
+| Component | Technology | Purpose |
+|---|---|---|
+| Programming Language | Python | ML pipeline and backend |
+| Data Processing | Pandas, NumPy | Data preparation and analysis |
+| Machine Learning | Scikit-learn, XGBoost | Model training and evaluation |
+| Explainable AI | SHAP | Feature-level explanations |
+| API Backend | FastAPI, Pydantic | Validated REST inference |
+| Experiment Tracking | MLflow | Run and metric tracking |
+| Drift Monitoring | SciPy, NumPy, Pandas | Statistical distribution analysis |
+| Dashboard | Streamlit | Interactive monitoring interface |
+| Testing | Pytest | Automated testing |
+| Containerization | Docker | Reproducible deployment |
+| CI/CD | GitHub Actions | Automated workflow execution |
+
+*The listed libraries and integrations should match the dependencies and implementations present in the repository.*
 
 ## 📂 Repository Structure
 
 ```text
 SentinelML/
 ├── api/
-│   └── main.py
+│   └── main.py              # FastAPI endpoints and inference
 ├── app/
-│   └── dashboard.py
+│   └── dashboard.py         # Streamlit dashboard
 ├── data/
-│   ├── raw/
-│   └── processed/
+│   └── raw/                 # Generated or source datasets
 ├── models/
+│   └── .gitkeep             # Placeholder for model artifacts
 ├── src/
 │   ├── data/
-│   │   └── generate_data.py
+│   │   └── generate_data.py # Network-flow data generation
 │   ├── models/
-│   │   └── train.py
+│   │   └── train.py         # Training and MLflow tracking
 │   └── monitoring/
-│       └── drift.py
+│       └── drift.py         # Statistical drift detection
 ├── tests/
-│   └── test_api.py
-├── .gitignore
+│   └── test_api.py          # API and schema tests
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # CI workflow, if configured
 ├── Dockerfile
 ├── requirements.txt
+├── .gitignore
 └── README.md
 ```
+
+*This is the intended project layout. Keep only files and directories that actually exist in your repository.*
 
 ## 📊 Evaluation Metrics
 
 | Metric | Purpose |
 |---|---|
-| PR-AUC | Evaluate positive-class detection under class imbalance |
-| Macro-F1 | Measure F1 performance across classes with equal class weighting |
-| Precision | Measure the proportion of predicted intrusions that are actual intrusions |
-| Recall | Measure the proportion of actual intrusions successfully detected |
-| KS Statistic | Quantify distribution differences between reference and current data |
-| PSI | Measure the magnitude of changes in feature distributions |
+| PR-AUC | Evaluates precision-recall performance, especially under class imbalance |
+| Macro-F1 | Gives equal weight to each class's F1 score |
+| Precision | Measures how many predicted intrusions are actually positive |
+| Recall | Measures how many actual intrusions are detected |
+| KS Statistic | Quantifies differences between two numerical distributions |
+| PSI | Quantifies changes in feature distributions when implemented |
+
+For an intrusion detection system, precision and recall should be evaluated together: low precision can cause excessive false alarms, while low recall can allow malicious traffic to go undetected.
 
 ## 🚀 Quickstart & Local Execution
 
 ### Prerequisites
 
-- Python 3.12 or a compatible Python version
-- Git
-- VS Code or another code editor
-- Docker (optional)
+Install the following before running the project:
 
-### 1. Clone the repository
+- Python 3.10 or a compatible version supported by the dependencies
+- Git
+- Docker, if you want to run the containerized service
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Aditya70-creator/SentinelML.git
 cd SentinelML
 ```
 
-### 2. Create a virtual environment
+### 2. Create a Virtual Environment
 
-**Windows PowerShell:**
+**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-If PowerShell blocks activation scripts, run:
+If PowerShell blocks environment activation, you can invoke the environment's Python executable directly instead:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
 ```
 
-**Linux / macOS:**
+**Linux / macOS**
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 3. Install Dependencies
 
 ```bash
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-### 4. Generate the dataset
+### 4. Generate Data
 
 ```bash
 python -m src.data.generate_data
 ```
 
-### 5. Train and evaluate models
+Ensure the data generator creates the dataset files expected by the training pipeline.
+
+### 5. Train the Models
 
 ```bash
 python -m src.models.train
 ```
 
-### 6. Run automated tests
+The training pipeline should preprocess the data, train the configured models, evaluate their performance, and record experiment results in MLflow where configured.
+
+### 6. Run Automated Tests
 
 ```bash
-python -m pytest -v
+pytest -v
 ```
 
-### 7. Launch the FastAPI server
+Resolve any failing tests before treating the current implementation as validated.
+
+### 7. Start the FastAPI Service
 
 ```bash
-uvicorn api.main:app --reload --port 8000
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Open the interactive API documentation at:
+Open the interactive API documentation in your browser:
 
-**http://127.0.0.1:8000/docs**
+http://127.0.0.1:8000/docs
 
-### 8. Launch the Streamlit dashboard
+### 8. Start the Streamlit Dashboard
 
-Open a second terminal, activate the same virtual environment, and run:
+Open a separate terminal, activate the same virtual environment, and run:
 
 ```bash
 streamlit run app/dashboard.py
 ```
 
-The dashboard will display at the local URL printed in your terminal, typically `http://localhost:8501`.
+Streamlit will print the local URL where the dashboard is available.
 
-### 9. View MLflow experiments
+## 🐳 Docker Deployment
 
-If your training script logs experiments to MLflow, launch its interface with:
-
-```bash
-mlflow ui
-```
-
-Then open **http://127.0.0.1:5000**.
-
-## 🐳 Docker
-
-Build the container image:
+Build the Docker image from the project root:
 
 ```bash
 docker build -t sentinelml .
 ```
 
-Run the API container:
+Run the inference service:
 
 ```bash
 docker run --rm -p 8000:8000 sentinelml
 ```
 
-The Docker command assumes that the Dockerfile starts the API server and that the required model artifacts are available or generated as part of the image setup.
+Open the API documentation:
+
+http://localhost:8000/docs
+
+**Note:** The Dockerfile must install the required dependencies, include the model artifacts or provide a reliable model-loading strategy, and start the API using the correct module path. If the dashboard is not included in the container, run it separately.
+
+## 🔬 Reproducibility & Engineering Practices
+
+SentinelML aims to follow practical ML engineering principles:
+
+- Separate data generation, model training, inference, and monitoring modules.
+- Keep preprocessing consistent between training and inference.
+- Avoid fitting preprocessing steps on evaluation or test data.
+- Use a fixed random seed where appropriate.
+- Record relevant experiment parameters and evaluation metrics.
+- Validate incoming API payloads.
+- Test normal requests, invalid inputs, and edge cases.
+- Keep secrets, local environments, and large generated artifacts out of version control.
+- Use CI to run automated tests on relevant code changes.
 
 ## 🗺️ Engineering Roadmap
 
-- [ ] Implement synthetic network-flow data generation and data-quality validation.
-- [ ] Build a reproducible preprocessing and training pipeline.
-- [ ] Compare Logistic Regression, Random Forest, and XGBoost baselines.
-- [ ] Evaluate class imbalance and optimize classification thresholds.
-- [ ] Integrate SHAP explanations into the inference API.
-- [ ] Implement KS-test and PSI-based drift monitoring.
-- [ ] Track model parameters and metrics with MLflow.
-- [ ] Build a Streamlit monitoring dashboard.
-- [ ] Add automated API, schema-validation, and model-quality tests.
-- [ ] Validate Docker deployment and document reproducible experiments.
+The following checklist represents the planned implementation milestones. Mark a task complete only after verifying it in the repository.
 
-## 🔒 Responsible Use
+- [ ] Network-flow data generation and validation
+- [ ] Reproducible preprocessing and training pipeline
+- [ ] Baseline model comparison: Logistic Regression, Random Forest, and XGBoost
+- [ ] Class imbalance handling and threshold optimization
+- [ ] SHAP explanations integrated into inference
+- [ ] KS-test-based feature drift monitoring
+- [ ] PSI-based drift monitoring, if implemented
+- [ ] MLflow experiment tracking
+- [ ] Streamlit monitoring dashboard
+- [ ] Automated API and schema validation tests
+- [ ] Docker containerization
+- [ ] GitHub Actions CI workflow
+- [ ] Documented API request and response examples
+- [ ] Model performance report on a clearly identified test dataset
 
-SentinelML is intended for defensive network monitoring, research, and educational use. Model predictions are probabilistic signals and should not be treated as definitive proof of malicious activity. Detection quality depends on the training data, feature availability, and evaluation methodology.
+## 🔐 Security & Responsible Use
+
+SentinelML is intended for educational, research, and defensive cybersecurity applications.
+
+- Use authorized datasets and network telemetry.
+- Do not send sensitive production traffic data to external services without appropriate authorization.
+- Validate input data and avoid exposing internal errors or sensitive information through API responses.
+- Do not interpret a model prediction as definitive proof of malicious activity.
+- Evaluate false positives, false negatives, and performance on representative data before considering operational use.
+
+## 🤝 Contributing
+
+Contributions, bug reports, and suggestions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Implement and test your changes.
+4. Submit a pull request with a clear description of the change.
+
+Please include relevant tests when modifying model behavior, API contracts, or monitoring logic.
+
+## 📄 License
+
+This project is intended to use the MIT License.
 
 ## 👨‍💻 Author
 
 **Aditya Mitra**
 
-- GitHub: [Aditya70-creator](https://github.com/Aditya70-creator)
+- GitHub: [@Aditya70-creator](https://github.com/Aditya70-creator)
 - Project: [SentinelML](https://github.com/Aditya70-creator/SentinelML)
 
 ---
 
 <p align="center">
-  <i>Building explainable machine learning systems for more observable and reliable security workflows.</i>
+  <b>Building reliable, explainable, and reproducible machine learning systems.</b>
 </p>
