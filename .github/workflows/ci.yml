@@ -23,11 +23,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate Data & Train Model
-        run: |
-          python -m src.data.generate_data
-          python -m src.models.train
-
       - name: Run Pytest Suite
+        env:
+          PYTHONPATH: .
         run: |
           pytest -v
