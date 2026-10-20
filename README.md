@@ -71,7 +71,7 @@ The project demonstrates how machine learning can be integrated into a reproduci
 
 ```mermaid
 %%{init: {
-  "theme": "dark",
+  "theme": "base",
   "themeVariables": {
     "darkMode": true,
     "background": "#0d1117",
