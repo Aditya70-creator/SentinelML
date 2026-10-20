@@ -1,4 +1,13 @@
 import json
+import os
+import sys
+from pathlib import Path
+
+# Fix Python path for Streamlit Cloud so 'src' and 'api' import cleanly
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import joblib
 import pandas as pd
 import streamlit as st
@@ -8,6 +17,16 @@ from src.monitoring.drift import evaluate_data_drift
 
 st.set_page_config(page_title="SentinelML Dashboard", layout="wide")
 st.title("🛡️ SentinelML — Network Intrusion Detection & MLOps Platform")
+
+# Auto-bootstrap data and model on cloud if missing
+if not os.path.exists("models/sentinel_pipeline.joblib") or not os.path.exists("data/raw/network_flows_reference.csv"):
+    with st.spinner("Initializing telemetry dataset and training models..."):
+        from src.data.generate_data import generate_network_flows
+        from src.models.train import train_and_evaluate
+        os.makedirs("data/raw", exist_ok=True)
+        generate_network_flows(n_samples=6000, drift=False, seed=42).to_csv("data/raw/network_flows_reference.csv", index=False)
+        generate_network_flows(n_samples=1500, drift=True, seed=99).to_csv("data/raw/network_flows_drifted.csv", index=False)
+        train_and_evaluate()
 
 with open("models/metadata.json", "r") as f:
     meta = json.load(f)
