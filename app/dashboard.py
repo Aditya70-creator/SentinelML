@@ -3,7 +3,6 @@ import os
 import sys
 from pathlib import Path
 
-# Fix Python path for Streamlit Cloud so 'src' and 'api' import cleanly
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -11,14 +10,13 @@ if str(ROOT_DIR) not in sys.path:
 import joblib
 import pandas as pd
 import streamlit as st
-from api.main import compute_shap_values
+from api.main import NetworkFlowInput, check_drift, compute_shap_values, health_check, predict_flow
 from src.data.generate_data import FEATURES
 from src.monitoring.drift import evaluate_data_drift
 
 st.set_page_config(page_title="SentinelML Dashboard", layout="wide")
 st.title("🛡️ SentinelML — Network Intrusion Detection & MLOps Platform")
 
-# Auto-bootstrap data and model on cloud if missing
 if not os.path.exists("models/sentinel_pipeline.joblib") or not os.path.exists("data/raw/network_flows_reference.csv"):
     with st.spinner("Initializing telemetry dataset and training models..."):
         from src.data.generate_data import generate_network_flows
@@ -32,7 +30,12 @@ with open("models/metadata.json", "r") as f:
     meta = json.load(f)
 pipeline = joblib.load("models/sentinel_pipeline.joblib")
 
-tab1, tab2, tab3 = st.tabs(["📊 Model Leaderboard & Metrics", "🔍 Live XAI Traffic Inspector", "📉 Data Drift & MLOps Monitor"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📊 Model Leaderboard & Metrics",
+    "🔍 Live XAI Traffic Inspector",
+    "📉 Data Drift & MLOps Monitor",
+    "📡 Interactive REST API Playground"
+])
 
 with tab1:
     st.subheader(f"Active Production Model: `{meta['winning_model']}` (Optimal Threshold: `{meta['optimal_threshold']}`)")
@@ -74,3 +77,39 @@ with tab3:
     c2.metric("Drift Share", f"{report['drift_share']:.1%}")
     c3.metric("Retraining Status", "🚨 RETRAIN TRIGGERED" if report["retrain_triggered"] else "✅ STABLE")
     st.dataframe(pd.DataFrame(report["features"]).T, use_container_width=True)
+
+with tab4:
+    st.subheader("📡 FastAPI Endpoint Simulator (Live Schema & JSON Response)")
+    endpoint = st.selectbox("Select FastAPI Endpoint to Test:", [
+        "POST /predict (Intrusion & SHAP Attribution)",
+        "GET /health (Service & Model Readiness)",
+        "GET /drift-status (KS-Test Telemetry JSON)"
+    ])
+
+    if endpoint.startswith("POST /predict"):
+        default_payload = {
+            "flow_duration_ms": 1450.5,
+            "total_fwd_packets": 52,
+            "total_bwd_packets": 3,
+            "packet_length_mean": 820.0,
+            "syn_flag_count": 7,
+            "rst_flag_count": 3,
+            "flow_bytes_per_sec": 74000.0,
+            "failed_login_attempts": 4,
+            "dst_port_entropy": 0.82
+        }
+        raw_json = st.text_area("Request JSON Body (Pydantic Validated):", value=json.dumps(default_payload, indent=2), height=240)
+        if st.button("Send POST /predict Request"):
+            try:
+                parsed = json.loads(raw_json)
+                validated_input = NetworkFlowInput(**parsed)
+                response = predict_flow(validated_input)
+                st.code(json.dumps(response, indent=2), language="json")
+            except Exception as e:
+                st.error(f"422 Unprocessable Entity / Validation Error: {e}")
+    elif endpoint.startswith("GET /health"):
+        if st.button("Send GET /health Request"):
+            st.code(json.dumps(health_check(), indent=2), language="json")
+    else:
+        if st.button("Send GET /drift-status Request"):
+            st.code(json.dumps(check_drift(use_drifted_batch=True), indent=2), language="json")
