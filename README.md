@@ -70,6 +70,22 @@ The project demonstrates how machine learning can be integrated into a reproduci
 ### System Architecture
 
 ```mermaid
+%%{init: {
+  "theme": "dark",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#0d1117",
+    "primaryColor": "#1e1b4b",
+    "primaryTextColor": "#ffffff",
+    "primaryBorderColor": "#38bdf8",
+    "lineColor": "#94a3b8",
+    "textColor": "#f8fafc",
+    "mainBkg": "#0f172a",
+    "nodeBorder": "#38bdf8",
+    "clusterBkg": "#0f172a",
+    "clusterBorder": "#334155"
+  }
+}}%%
 flowchart TD
     A["Network Traffic Flow Records"] --> B["Data Quality & Feature Engineering"]
     B --> C["Leak-Free Preprocessing"]
