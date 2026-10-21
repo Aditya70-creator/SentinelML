@@ -1,0 +1,40 @@
+name: Keep Streamlit App Awake (24x7)
+
+on:
+  schedule:
+    # Runs automatically every 6 hours to prevent Streamlit sleep mode
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-streamlit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Playwright & Chromium
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Visit Streamlit App & Wake Up if Asleep
+        run: |
+          python -c "
+          from playwright.sync_api import sync_playwright
+          url = 'https://sentinel-8xkyi5wo6ggso83y8jbvxz.streamlit.app/'
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              page = browser.new_page()
+              page.goto(url, wait_until='networkidle', timeout=90000)
+              page.wait_for_timeout(5000)
+               wake_btn = page.locator('button:has-text(\"Yes, get this app back up\")')
+              if wake_btn.count() > 0:
+                  wake_btn.click()
+                  page.wait_for_timeout(20000)
+                  print('Clicked wake-up button!')
+              print('Successfully kept SentinelML alive:', page.title())
+              browser.close()
+          "
