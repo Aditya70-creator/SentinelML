@@ -86,6 +86,17 @@ st.markdown(
         font-size: 0.78rem;
         margin-top: 2px;
     }
+    .panel-header {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin-bottom: 4px;
+    }
+    .panel-caption {
+        font-size: 0.82rem;
+        color: #94a3b8;
+        margin-bottom: 10px;
+    }
     div[data-testid="stTabs"] button {
         font-weight: 700 !important;
         font-size: 0.95rem !important;
@@ -123,7 +134,7 @@ with st.sidebar:
     st.markdown("### 🛡️ SentinelML Control Node")
     st.caption("Explainable Network IDS & MLOps")
     st.divider()
-    st.markdown(f"**🟢 Engine Status:** `ONLINE`")
+    st.markdown("**🟢 Engine Status:** `ONLINE`")
     st.markdown(f"**🏆 Champion Model:** `{winner_name}`")
     st.markdown(f"**🎯 Decision Threshold:** `{meta['optimal_threshold']}`")
     st.markdown(f"**📈 Validation PR-AUC:** `{winner_stats['pr_auc']:.4f}`")
@@ -198,7 +209,7 @@ tab1, tab2, tab3, tab4 = st.tabs(
 )
 
 # ═══════════════════════════════════════════════════════════
-# TAB 1: LIVE XAI TRAFFIC INSPECTOR (Default Landing Tab)
+# TAB 1: LIVE XAI TRAFFIC INSPECTOR (Zero Text Overlap)
 # ═══════════════════════════════════════════════════════════
 with tab1:
     st.markdown("#### ⚡ Quick Traffic Scenario Presets")
@@ -219,7 +230,9 @@ with tab1:
         user_input = {}
         for idx, feat in enumerate(FEATURES):
             user_input[feat] = cols[idx % 3].number_input(
-                feat, value=float(st.session_state.preset_vals[idx]), key=f"inp_{feat}_{st.session_state.preset_vals[idx]}"
+                feat,
+                value=float(st.session_state.preset_vals[idx]),
+                key=f"inp_{feat}_{st.session_state.preset_vals[idx]}",
             )
 
     df_in = pd.DataFrame([user_input])[FEATURES]
@@ -230,22 +243,36 @@ with tab1:
     X_trans = pipeline.named_steps["preprocessor"].transform(df_in)
     vals = compute_shap_values(pipeline.named_steps["classifier"], X_trans)
 
-    g_col, s_col = st.columns([1, 1.35])
+    st.write("")
+    g_col, s_col = st.columns([1, 1.4], gap="large")
 
     with g_col:
+        st.markdown(
+            '<div class="panel-header">🎯 Real-Time Threat Classification</div>'
+            '<div class="panel-caption">Calibrated probability vs optimal PR threshold</div>',
+            unsafe_allow_html=True,
+        )
         if is_attack:
-            st.error(f"🚨 **INTRUSION DETECTED** — Malicious Probability: **{prob:.2%}** (Threshold: `{thresh}`)")
+            st.error(
+                f"🚨 **INTRUSION DETECTED** — Malicious Risk: **{prob:.2%}** (Threshold: `{thresh}`)"
+            )
         else:
-            st.success(f"✅ **BENIGN TRAFFIC** — Malicious Probability: **{prob:.2%}** (Threshold: `{thresh}`)")
+            st.success(
+                f"✅ **BENIGN TRAFFIC** — Malicious Risk: **{prob:.2%}** (Threshold: `{thresh}`)"
+            )
 
         fig_gauge = go.Figure(
             go.Indicator(
                 mode="gauge+number",
                 value=prob * 100,
-                number={"suffix": "%", "font": {"color": "#f8fafc", "size": 36}},
-                title={"text": "Intrusion Risk Score", "font": {"color": "#94a3b8", "size": 15}},
+                number={"suffix": "%", "font": {"color": "#f8fafc", "size": 34}},
                 gauge={
-                    "axis": {"range": [0, 100], "tickcolor": "#94a3b8"},
+                    "axis": {
+                        "range": [0, 100],
+                        "tickwidth": 1,
+                        "tickcolor": "#94a3b8",
+                        "tickfont": {"size": 12, "color": "#cbd5e1"},
+                    },
                     "bar": {"color": "#f43f5e" if is_attack else "#10b981"},
                     "bgcolor": "#0f172a",
                     "borderwidth": 1,
@@ -263,41 +290,61 @@ with tab1:
             )
         )
         fig_gauge.update_layout(
-            height=300,
-            margin=dict(l=20, r=20, t=40, b=10),
+            height=290,
+            margin=dict(l=38, r=38, t=25, b=15),
             paper_bgcolor="rgba(0,0,0,0)",
             font={"color": "#f8fafc"},
         )
-        st.plotly_chart(fig_gauge, use_container_width=True)
+        st.plotly_chart(
+            fig_gauge, use_container_width=True, config={"displayModeBar": False}
+        )
 
     with s_col:
+        st.markdown(
+            '<div class="panel-header">🧠 Local SHAP Feature Attribution</div>'
+            '<div class="panel-caption">Exact feature-level impact driving this individual prediction</div>',
+            unsafe_allow_html=True,
+        )
         shap_df = pd.DataFrame({"Feature": FEATURES, "SHAP_Impact": vals}).sort_values(
             by="SHAP_Impact", ascending=True
         )
-        shap_df["Direction"] = np.where(
-            shap_df["SHAP_Impact"] >= 0, "Pushes toward Intrusion (+)", "Pushes toward Benign (-)"
+        shap_df["Impact Direction"] = np.where(
+            shap_df["SHAP_Impact"] >= 0,
+            "Pushes toward Intrusion (+)",
+            "Pushes toward Benign (-)",
         )
         fig_shap = px.bar(
             shap_df,
             x="SHAP_Impact",
             y="Feature",
             orientation="h",
-            color="Direction",
+            color="Impact Direction",
             color_discrete_map={
                 "Pushes toward Intrusion (+)": "#f43f5e",
                 "Pushes toward Benign (-)": "#38bdf8",
             },
-            title="Local SHAP Feature Attribution (Why the model made this decision)",
         )
         fig_shap.update_layout(
-            height=350,
-            margin=dict(l=10, r=10, t=45, b=10),
+            height=365,
+            margin=dict(l=10, r=20, t=15, b=55),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(15,23,42,0.5)",
-            font={"color": "#f8fafc"},
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            font={"color": "#f8fafc", "size": 12},
+            xaxis_title="SHAP Value (Impact on Model Output)",
+            yaxis_title=None,
+            legend=dict(
+                title=None,
+                orientation="h",
+                yanchor="top",
+                y=-0.18,
+                xanchor="center",
+                x=0.5,
+                font=dict(size=12, color="#e2e8f0"),
+            ),
         )
-        st.plotly_chart(fig_shap, use_container_width=True)
+        st.plotly_chart(
+            fig_shap, use_container_width=True, config={"displayModeBar": False}
+        )
 
 # ═══════════════════════════════════════════════════════════
 # TAB 2: MODEL LEADERBOARD & DIAGNOSTICS
@@ -307,10 +354,16 @@ with tab2:
     lb_df = pd.DataFrame(meta["leaderboard"]).T.drop(columns=["confusion_matrix"])
     st.dataframe(lb_df.style.highlight_max(axis=0, color="#065f46"), use_container_width=True)
 
-    c_left, c_right = st.columns([1.2, 1])
+    c_left, c_right = st.columns([1.2, 1], gap="large")
     with c_left:
-        plot_df = lb_df[["pr_auc", "f1_score", "precision", "recall"]].reset_index().melt(
-            id_vars="index", var_name="Metric", value_name="Score"
+        st.markdown(
+            '<div class="panel-header">📊 Metric Comparison Across Candidates</div>',
+            unsafe_allow_html=True,
+        )
+        plot_df = (
+            lb_df[["pr_auc", "f1_score", "precision", "recall"]]
+            .reset_index()
+            .melt(id_vars="index", var_name="Metric", value_name="Score")
         )
         fig_comp = px.bar(
             plot_df,
@@ -319,33 +372,40 @@ with tab2:
             color="index",
             barmode="group",
             color_discrete_sequence=["#38bdf8", "#34d399", "#818cf8"],
-            title="PR-AUC, F1, Precision & Recall Across Candidate Models",
         )
         fig_comp.update_layout(
             yaxis_range=[0.75, 1.0],
+            margin=dict(l=10, r=10, t=15, b=50),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(15,23,42,0.5)",
             font={"color": "#f8fafc"},
+            legend=dict(
+                title=None, orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5
+            ),
             height=360,
         )
-        st.plotly_chart(fig_comp, use_container_width=True)
+        st.plotly_chart(fig_comp, use_container_width=True, config={"displayModeBar": False})
 
     with c_right:
+        st.markdown(
+            f'<div class="panel-header">🎯 Confusion Matrix — {winner_name}</div>',
+            unsafe_allow_html=True,
+        )
         cm = np.array(winner_stats["confusion_matrix"])
         fig_cm = px.imshow(
             cm,
             text_auto=True,
             color_continuous_scale="Blues",
-            x=["Predicted Benign (0)", "Predicted Intrusion (1)"],
+            x=["Pred Benign (0)", "Pred Intrusion (1)"],
             y=["Actual Benign (0)", "Actual Intrusion (1)"],
-            title=f"Confusion Matrix — {winner_name}",
         )
         fig_cm.update_layout(
+            margin=dict(l=10, r=10, t=15, b=20),
             paper_bgcolor="rgba(0,0,0,0)",
             font={"color": "#f8fafc"},
             height=360,
         )
-        st.plotly_chart(fig_cm, use_container_width=True)
+        st.plotly_chart(fig_cm, use_container_width=True, config={"displayModeBar": False})
 
 # ═══════════════════════════════════════════════════════════
 # TAB 3: DATA DRIFT & MLOPS TELEMETRY
@@ -369,7 +429,10 @@ with tab3:
     report = evaluate_data_drift(ref_df, cur_df)
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("Drifted Features Flagged", f"{report['drifted_feature_count']} / {report['total_features']}")
+    m1.metric(
+        "Drifted Features Flagged",
+        f"{report['drifted_feature_count']} / {report['total_features']}",
+    )
     m2.metric("Covariate Drift Share", f"{report['drift_share']:.1%}")
     m3.metric(
         "Pipeline Retraining Trigger",
@@ -378,8 +441,12 @@ with tab3:
 
     dist_df = pd.concat(
         [
-            pd.DataFrame({inspected_feat: ref_df[inspected_feat].dropna(), "Dataset": "Reference Baseline"}),
-            pd.DataFrame({inspected_feat: cur_df[inspected_feat].dropna(), "Dataset": "Incoming Batch"}),
+            pd.DataFrame(
+                {inspected_feat: ref_df[inspected_feat].dropna(), "Dataset": "Reference Baseline"}
+            ),
+            pd.DataFrame(
+                {inspected_feat: cur_df[inspected_feat].dropna(), "Dataset": "Incoming Batch"}
+            ),
         ]
     )
     fig_dist = px.histogram(
@@ -390,15 +457,16 @@ with tab3:
         nbins=45,
         histnorm="probability density",
         color_discrete_map={"Reference Baseline": "#38bdf8", "Incoming Batch": "#f43f5e"},
-        title=f"Distribution Shift Overlay: {inspected_feat}",
     )
     fig_dist.update_layout(
         height=320,
+        margin=dict(l=10, r=10, t=20, b=40),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(15,23,42,0.5)",
         font={"color": "#f8fafc"},
+        legend=dict(title=None, orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
-    st.plotly_chart(fig_dist, use_container_width=True)
+    st.plotly_chart(fig_dist, use_container_width=True, config={"displayModeBar": False})
 
     st.dataframe(pd.DataFrame(report["features"]).T, use_container_width=True)
 
